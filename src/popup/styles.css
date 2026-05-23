@@ -8,20 +8,8 @@ body {
   padding: 16px;
 }
 
-label,
-select,
 button {
   width: 100%;
-}
-
-label {
-  display: block;
-  margin-bottom: 6px;
-}
-
-select {
-  margin-bottom: 12px;
-  padding: 8px 10px;
 }
 
 button {

@@ -3,7 +3,7 @@ export interface ExportWarning {
   message: string;
 }
 
-export type TableFormat = 'markdown' | 'html';
+export type TableFormat = 'markdown';
 
 export interface ExportOptions {
   tableFormat: TableFormat;
@@ -28,5 +28,5 @@ export interface MarkdownConversionResult {
 }
 
 export function isTableFormat(value: unknown): value is TableFormat {
-  return value === 'markdown' || value === 'html';
+  return value === 'markdown';
 }

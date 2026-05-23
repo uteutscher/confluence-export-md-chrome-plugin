@@ -17,7 +17,7 @@ describe('exportCurrentPage', () => {
     });
   });
 
-  it('preserves tables as html when the html table option is selected', () => {
+  it('converts tables to markdown even if an old html option value is passed', () => {
     const dom = new JSDOM(`
       <main data-testid="page-content">
         <h1>Runbook</h1>
@@ -30,9 +30,10 @@ describe('exportCurrentPage', () => {
 
     expect(result.markdown).toContain('# Runbook');
     expect(result.markdown).toContain('Before');
-    expect(result.markdown).toContain('<table>');
-    expect(result.markdown).toContain('<th>A</th>');
-    expect(result.markdown).toContain('<td>B</td>');
+    expect(result.markdown).toContain('| A |');
+    expect(result.markdown).toContain('| --- |');
+    expect(result.markdown).toContain('| B |');
+    expect(result.markdown).not.toContain('<table>');
     expect(result.warnings).toEqual([]);
   });
 });

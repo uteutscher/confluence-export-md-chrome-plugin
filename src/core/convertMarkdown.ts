@@ -16,25 +16,81 @@ function normalizeRelativeLinks(html: string, pageUrl: string): string {
   });
 }
 
-function preserveTablesAsHtml(html: string): { html: string; tables: Array<{ token: string; html: string }> } {
+function normalizeTablesForMarkdown(html: string): string {
   const parser = new DOMParser();
   const parsed = parser.parseFromString(html, 'text/html');
-  const tables: Array<{ token: string; html: string }> = [];
 
-  parsed.querySelectorAll('table').forEach((table, index) => {
-    const token = `CONFLUENCETABLETOKEN${index}XYZ`;
-    tables.push({ token, html: table.outerHTML });
-    table.replaceWith(parsed.createTextNode(token));
+  parsed.querySelectorAll('table').forEach((table) => {
+    const simplifiedTable = parsed.createElement('table');
+    const simplifiedBody = parsed.createElement('tbody');
+
+    table.querySelectorAll('tr').forEach((row) => {
+      const simplifiedRow = parsed.createElement('tr');
+
+      row.querySelectorAll(':scope > th, :scope > td').forEach((cell) => {
+        const simplifiedCell = parsed.createElement(cell.tagName.toLowerCase());
+        const sanitizedCell = cell.cloneNode(true) as HTMLElement;
+
+        sanitizedCell.querySelectorAll(
+          'figure, [role="button"], [role="presentation"], .ak-renderer-tableHeader-sorting-icon__wrapper, .ak-renderer-tableHeader-sorting-icon, colgroup'
+        ).forEach((node) => node.remove());
+
+        let changed = true;
+        while (changed) {
+          changed = false;
+          Array.from(sanitizedCell.querySelectorAll('*')).reverse().forEach((element) => {
+            const tag = element.tagName;
+
+            if (tag === 'A') {
+              Array.from(element.attributes).forEach((attribute) => {
+                if (attribute.name !== 'href') {
+                  element.removeAttribute(attribute.name);
+                }
+              });
+              return;
+            }
+
+            if (tag === 'STRONG' || tag === 'EM' || tag === 'CODE') {
+              Array.from(element.attributes).forEach((attribute) => element.removeAttribute(attribute.name));
+              return;
+            }
+
+            if (tag === 'BR') {
+              element.replaceWith(parsed.createTextNode(' '));
+              changed = true;
+              return;
+            }
+
+            const fragment = parsed.createDocumentFragment();
+            while (element.firstChild) {
+              fragment.appendChild(element.firstChild);
+            }
+            element.replaceWith(fragment);
+            changed = true;
+          });
+        }
+
+        sanitizedCell.normalize();
+        Array.from(sanitizedCell.childNodes).forEach((node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            node.textContent = node.textContent?.replace(/\s+/g, ' ') ?? '';
+          }
+        });
+
+        simplifiedCell.innerHTML = sanitizedCell.innerHTML.trim();
+        simplifiedRow.appendChild(simplifiedCell);
+      });
+
+      if (simplifiedRow.children.length > 0) {
+        simplifiedBody.appendChild(simplifiedRow);
+      }
+    });
+
+    simplifiedTable.appendChild(simplifiedBody);
+    table.replaceWith(simplifiedTable);
   });
 
-  return { html: parsed.body.innerHTML, tables };
-}
-
-function restorePreservedTables(markdown: string, tables: Array<{ token: string; html: string }>): string {
-  return tables.reduce(
-    (output, table) => output.replaceAll(table.token, `\n\n${table.html}\n\n`),
-    markdown
-  );
+  return parsed.body.innerHTML;
 }
 
 function createTurndownService(warnings: MarkdownConversionResult['warnings']): TurndownService {
@@ -86,9 +142,8 @@ export function convertExtractedPageToMarkdown(
 ): MarkdownConversionResult {
   const warnings: MarkdownConversionResult['warnings'] = [];
   const normalizedHtml = normalizeRelativeLinks(page.contentHtml, page.url);
-  const htmlInput = options.tableFormat === 'html' ? preserveTablesAsHtml(normalizedHtml) : { html: normalizedHtml, tables: [] };
   const turndown = createTurndownService(warnings);
-  const body = restorePreservedTables(turndown.turndown(htmlInput.html), htmlInput.tables).trim();
+  const body = turndown.turndown(normalizeTablesForMarkdown(normalizedHtml)).trim();
 
   return {
     markdown: `# ${page.title}\n\n${body}`.trim(),

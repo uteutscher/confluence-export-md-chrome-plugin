@@ -7,7 +7,6 @@ Chrome Extension (Manifest V3) zum Export der aktuell geoeffneten **Confluence C
 - erkennt unterstuetzte Confluence-Cloud-Seiten
 - exportiert den Hauptinhalt der aktuellen Seite
 - wandelt Standard-HTML und typische Confluence-Elemente in Markdown um
-- bietet eine persistente Tabellen-Option fuer Markdown oder HTML
 - laedt das Ergebnis als `.md`-Datei herunter
 - zeigt Erfolg, Warnungen oder Fehler im Popup an
 
@@ -77,8 +76,6 @@ Der Build liegt danach in `dist/`.
 2. Das Extension-Popup oeffnen
 3. **Export Markdown** klicken
 4. Die generierte `.md`-Datei herunterladen
-
-Vor dem Export kann im Popup fuer Tabellen zwischen **Markdown** und **HTML** gewechselt werden. Die Auswahl bleibt fuer weitere Exporte erhalten.
 
 ## Technische Basis
 
