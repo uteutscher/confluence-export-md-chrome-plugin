@@ -30,4 +30,33 @@ describe('extractPage', () => {
       ]
     });
   });
+
+  it('extracts content from the Confluence cloud renderer layout used on real pages', () => {
+    const dom = new JSDOM(`
+      <html>
+        <body>
+          <span id="content-title-id">
+            <h1 id="heading-title-text">Steckbrief E-Rechnung</h1>
+          </span>
+          <div
+            id="main-content"
+            data-testid="pageContentRendererTestId"
+            class="wiki-content"
+          >
+            <div class="renderer-overrides">
+              <h1>Rahmendaten</h1>
+              <p>Renderer content</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `, { url: 'https://dvag.atlassian.net/wiki/spaces/ITARC/pages/1232470161/Steckbrief+E-Rechnung' });
+
+    expect(extractPage(dom.window.document, dom.window.location.href)).toEqual({
+      title: 'Steckbrief E-Rechnung',
+      url: 'https://dvag.atlassian.net/wiki/spaces/ITARC/pages/1232470161/Steckbrief+E-Rechnung',
+      contentHtml: '<div class="renderer-overrides"><h1>Rahmendaten</h1><p>Renderer content</p></div>',
+      assets: []
+    });
+  });
 });

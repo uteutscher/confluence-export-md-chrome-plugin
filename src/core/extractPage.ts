@@ -1,9 +1,18 @@
 import type { ExtractedAsset, ExtractedPage } from './types';
 
 const COMMENT_SELECTORS = ['[data-testid="inline-comment-marker"]', '[data-testid="comment"]'];
+const CONTENT_SELECTORS = ['main[data-testid="page-content"]', '[data-testid="pageContentRendererTestId"]', '#main-content'];
+const TITLE_SELECTORS = ['#content-title-id h1', '#heading-title-text'];
+
+function isElement(element: Element | null | undefined): element is Element {
+  return element !== null && element !== undefined;
+}
 
 export function extractPage(document: Document, pageUrl: string): ExtractedPage {
-  const contentRoot = document.querySelector('main[data-testid="page-content"]');
+  const contentRoot = CONTENT_SELECTORS
+    .map((selector) => document.querySelector(selector))
+    .find(isElement) ?? null;
+
   if (contentRoot === null) {
     throw new Error('Could not find the Confluence page content.');
   }
@@ -13,9 +22,14 @@ export function extractPage(document: Document, pageUrl: string): ExtractedPage 
     clonedRoot.querySelectorAll(selector).forEach((node) => node.remove());
   });
 
+  const titleElement = TITLE_SELECTORS
+    .map((selector) => document.querySelector(selector))
+    .find(isElement);
   const heading = clonedRoot.querySelector('h1');
-  const title = heading?.textContent?.trim() || document.title.trim();
-  heading?.remove();
+  const title = titleElement?.textContent?.trim() || heading?.textContent?.trim() || document.title.trim();
+  if (titleElement === undefined) {
+    heading?.remove();
+  }
 
   const assets = Array.from(clonedRoot.querySelectorAll('a[href]'))
     .map((link) => {

@@ -1,3 +1,4 @@
+import { createMarkdownDownloadUrl } from '../core/downloadUrl';
 import { createMarkdownFileName } from '../core/filename';
 import { getPageEligibility } from '../core/pageEligibility';
 
@@ -34,7 +35,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         const titleLine = response.payload.markdown.split('\n')[0];
         const title = titleLine.startsWith('# ') ? titleLine.replace(/^# /, '') : 'confluence-export';
         const fileName = createMarkdownFileName(title);
-        const url = URL.createObjectURL(new Blob([response.payload.markdown], { type: 'text/markdown' }));
+        const url = createMarkdownDownloadUrl(response.payload.markdown);
 
         await chrome.downloads.download({ url, filename: fileName, saveAs: false });
         
