@@ -21,5 +21,5 @@ export function renderPopup(root: HTMLElement, state: PopupState): void {
     return;
   }
 
-  root.innerHTML = `<p>${state.message}</p><button id="export-button">Export Markdown</button>`;
+  root.innerHTML = `<p>${state.message}</p>`;
 }

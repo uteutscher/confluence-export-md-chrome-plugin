@@ -30,10 +30,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           throw new Error(response.error || 'Export failed.');
         }
 
-        const fileName = createMarkdownFileName(response.payload.markdown.split('\n')[0].replace(/^# /, ''));
+        const titleLine = response.payload.markdown.split('\n')[0];
+        const title = titleLine.startsWith('# ') ? titleLine.replace(/^# /, '') : 'confluence-export';
+        const fileName = createMarkdownFileName(title);
         const url = URL.createObjectURL(new Blob([response.payload.markdown], { type: 'text/markdown' }));
 
         await chrome.downloads.download({ url, filename: fileName, saveAs: false });
+        URL.revokeObjectURL(url);
+        
         sendResponse({
           ok: true,
           state: {
