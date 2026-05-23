@@ -19,7 +19,7 @@ function createTurndownService(warnings: MarkdownConversionResult['warnings']): 
   service.addRule('panel', {
     filter: (node) => node instanceof HTMLElement && node.hasAttribute('data-panel-type'),
     replacement: (content, node) => {
-      const label = (node as HTMLElement).getAttribute('data-panel-type') || 'info';
+      const label = (node as HTMLElement).getAttribute('data-panel-type')?.trim() || 'info';
       return `\n> **${label[0].toUpperCase()}${label.slice(1)}:** ${content.trim()}\n`;
     }
   });
