@@ -26,8 +26,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       if (message?.type === 'start-export') {
         const tab = await getActiveTab();
         const response = await chrome.tabs.sendMessage(tab.id, { type: 'export-current-page' });
-        if (response.ok !== true) {
-          throw new Error(response.error || 'Export failed.');
+        
+        if (!response || response.ok !== true) {
+          throw new Error(response?.error || 'Export failed.');
         }
 
         const titleLine = response.payload.markdown.split('\n')[0];
