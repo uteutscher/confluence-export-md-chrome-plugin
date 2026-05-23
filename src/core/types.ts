@@ -3,6 +3,12 @@ export interface ExportWarning {
   message: string;
 }
 
+export type TableFormat = 'markdown' | 'html';
+
+export interface ExportOptions {
+  tableFormat: TableFormat;
+}
+
 export interface ExtractedAsset {
   type: 'image' | 'attachment';
   label: string;
@@ -19,4 +25,8 @@ export interface ExtractedPage {
 export interface MarkdownConversionResult {
   markdown: string;
   warnings: ExportWarning[];
+}
+
+export function isTableFormat(value: unknown): value is TableFormat {
+  return value === 'markdown' || value === 'html';
 }

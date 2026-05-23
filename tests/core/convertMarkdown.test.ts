@@ -41,4 +41,18 @@ describe('convertExtractedPageToMarkdown', () => {
     expect(result.markdown).not.toContain('[Unsupported macro: roadmap]');
     expect(result.warnings).toEqual([]);
   });
+
+  it('preserves tables as raw html when html table export is selected', () => {
+    const result = convertExtractedPageToMarkdown({
+      title: 'Runbook',
+      url: 'https://workspace.atlassian.net/wiki/spaces/ENG/pages/12345/Runbook',
+      contentHtml: '<p>Before</p><table><tr><th>A</th></tr><tr><td><a href="/wiki/spaces/ENG/pages/7/Checklist">B</a></td></tr></table><p>After</p>',
+      assets: []
+    }, { tableFormat: 'html' } as never);
+
+    expect(result.markdown).toContain('Before');
+    expect(result.markdown).toContain('<table>');
+    expect(result.markdown).toContain('https://workspace.atlassian.net/wiki/spaces/ENG/pages/7/Checklist');
+    expect(result.markdown).toContain('After');
+  });
 });

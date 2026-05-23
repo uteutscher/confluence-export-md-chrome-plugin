@@ -16,4 +16,23 @@ describe('exportCurrentPage', () => {
       warnings: []
     });
   });
+
+  it('preserves tables as html when the html table option is selected', () => {
+    const dom = new JSDOM(`
+      <main data-testid="page-content">
+        <h1>Runbook</h1>
+        <p>Before</p>
+        <table><tr><th>A</th></tr><tr><td>B</td></tr></table>
+      </main>
+    `, { url: 'https://workspace.atlassian.net/wiki/spaces/ENG/pages/12345/Runbook' });
+
+    const result = exportCurrentPage(dom.window.document, dom.window.location.href, { tableFormat: 'html' } as never);
+
+    expect(result.markdown).toContain('# Runbook');
+    expect(result.markdown).toContain('Before');
+    expect(result.markdown).toContain('<table>');
+    expect(result.markdown).toContain('<th>A</th>');
+    expect(result.markdown).toContain('<td>B</td>');
+    expect(result.warnings).toEqual([]);
+  });
 });

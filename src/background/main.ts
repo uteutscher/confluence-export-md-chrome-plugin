@@ -1,6 +1,7 @@
 import { createMarkdownDownloadUrl } from '../core/downloadUrl';
 import { createMarkdownFileName } from '../core/filename';
 import { getPageEligibility } from '../core/pageEligibility';
+import { isTableFormat, type ExportOptions, type TableFormat } from '../core/types';
 
 async function getActiveTab(): Promise<{ id: number; url: string }> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -10,15 +11,28 @@ async function getActiveTab(): Promise<{ id: number; url: string }> {
   return { id: tab.id, url: tab.url };
 }
 
+async function getStoredTableFormat(): Promise<TableFormat> {
+  const result = await new Promise<unknown>((resolve) => {
+    chrome.storage.local.get(['tableFormat'], resolve);
+  });
+
+  if (result && typeof result === 'object' && 'tableFormat' in result && isTableFormat(result.tableFormat)) {
+    return result.tableFormat;
+  }
+
+  return 'markdown';
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   void (async () => {
     try {
       if (message?.type === 'get-popup-state') {
         const tab = await getActiveTab();
         const eligibility = getPageEligibility(new URL(tab.url));
+        const tableFormat = await getStoredTableFormat();
         sendResponse(
           eligibility.ok
-            ? { ok: true, state: { kind: 'ready' } }
+            ? { ok: true, state: { kind: 'ready', tableFormat } }
             : { ok: true, state: { kind: 'unsupported', message: eligibility.reason } }
         );
         return;
@@ -26,7 +40,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
       if (message?.type === 'start-export') {
         const tab = await getActiveTab();
-        const response = await chrome.tabs.sendMessage(tab.id, { type: 'export-current-page' });
+        const options: ExportOptions = isTableFormat(message?.options?.tableFormat)
+          ? { tableFormat: message.options.tableFormat }
+          : { tableFormat: 'markdown' };
+        const response = await chrome.tabs.sendMessage(tab.id, { type: 'export-current-page', options });
         
         if (!response || response.ok !== true) {
           throw new Error(response?.error || 'Export failed.');

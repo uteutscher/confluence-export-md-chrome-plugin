@@ -1,4 +1,5 @@
 import { exportCurrentPage } from './exportCurrentPage';
+import type { ExportOptions } from '../core/types';
 
 type ExportMessageResponse =
   | { ok: true; payload: { markdown: string; warnings: { code: string; message: string }[] } }
@@ -10,7 +11,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   try {
-    const result = exportCurrentPage(document, window.location.href);
+    const options: ExportOptions =
+      message?.options?.tableFormat === 'html' ? { tableFormat: 'html' } : { tableFormat: 'markdown' };
+    const result = exportCurrentPage(document, window.location.href, options);
     const response: ExportMessageResponse = {
       ok: true,
       payload: result

@@ -34,4 +34,17 @@ describe('renderPopup', () => {
     expect(document.body.textContent).toContain('Export failed.');
     expect(document.querySelector('button')).toBeNull();
   });
+
+  it('shows a table format selector and export button for ready state', () => {
+    document.body.innerHTML = '<div id="app"></div>';
+    renderPopup(document.querySelector('#app') as HTMLElement, {
+      kind: 'ready',
+      tableFormat: 'markdown'
+    } as never);
+
+    expect(document.querySelector('label')?.textContent).toContain('Table format');
+    expect(document.querySelector<HTMLSelectElement>('#table-format')?.value).toBe('markdown');
+    expect(document.querySelectorAll('option')).toHaveLength(2);
+    expect(document.querySelector<HTMLButtonElement>('#export-button')?.textContent).toBe('Export Markdown');
+  });
 });
