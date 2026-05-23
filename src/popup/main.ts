@@ -16,9 +16,13 @@ chrome.runtime.sendMessage({ type: 'get-popup-state' }, (response: { ok: boolean
     renderPopup(root, { kind: 'loading' });
     chrome.runtime.sendMessage({ type: 'start-export' }, (exportResponse: { ok: boolean; state: PopupState }) => {
       if (!exportResponse || exportResponse.ok !== true) {
+        let errorMessage = 'The export did not return a valid response.';
+        if (exportResponse?.state && typeof exportResponse.state === 'object' && 'message' in exportResponse.state && typeof exportResponse.state.message === 'string') {
+          errorMessage = exportResponse.state.message;
+        }
         renderPopup(root, {
           kind: 'error',
-          message: exportResponse?.state?.message || 'The export did not return a valid response.'
+          message: errorMessage
         });
         return;
       }
