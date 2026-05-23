@@ -42,6 +42,61 @@ describe('convertExtractedPageToMarkdown', () => {
     expect(result.warnings).toEqual([]);
   });
 
+  it('ignores extension-based confluence macros without exporting their placeholder text', () => {
+    const result = convertExtractedPageToMarkdown({
+      title: 'Runbook',
+      url: 'https://workspace.atlassian.net/wiki/spaces/ENG/pages/12345/Runbook',
+      contentHtml: `
+        <p>Before</p>
+        <div data-node-type="extension" data-extension-key="jira">
+          Jira macro placeholder
+        </div>
+        <span data-node-type="inlineExtension" data-extension-key="status">
+          Inline macro placeholder
+        </span>
+        <div data-node-type="bodiedExtension" data-extension-key="roadmap">
+          Bodied macro placeholder
+        </div>
+        <p>After</p>
+      `,
+      assets: []
+    });
+
+    expect(result.markdown).toContain('Before');
+    expect(result.markdown).toContain('After');
+    expect(result.markdown).not.toContain('Jira macro placeholder');
+    expect(result.markdown).not.toContain('Inline macro placeholder');
+    expect(result.markdown).not.toContain('Bodied macro placeholder');
+    expect(result.warnings).toEqual([]);
+  });
+
+  it('removes cdata wrappers from normal export content while preserving inner text', () => {
+    const result = convertExtractedPageToMarkdown({
+      title: 'Runbook',
+      url: 'https://workspace.atlassian.net/wiki/spaces/ENG/pages/12345/Runbook',
+      contentHtml: '<p>Prefix <![CDATA[important payload]]> suffix</p>',
+      assets: []
+    });
+
+    expect(result.markdown).toContain('Prefix important payload suffix');
+    expect(result.markdown).not.toContain('<![CDATA[');
+    expect(result.markdown).not.toContain(']]>');
+  });
+
+  it('removes cdata wrappers from code blocks while preserving code content', () => {
+    const result = convertExtractedPageToMarkdown({
+      title: 'Runbook',
+      url: 'https://workspace.atlassian.net/wiki/spaces/ENG/pages/12345/Runbook',
+      contentHtml: '<pre><code><![CDATA[<tag>value</tag>]]></code></pre>',
+      assets: []
+    });
+
+    expect(result.markdown).toContain('```');
+    expect(result.markdown).toContain('<tag>value</tag>');
+    expect(result.markdown).not.toContain('<![CDATA[');
+    expect(result.markdown).not.toContain(']]>');
+  });
+
   it('still converts tables to markdown even if an old html option value is encountered', () => {
     const result = convertExtractedPageToMarkdown({
       title: 'Runbook',

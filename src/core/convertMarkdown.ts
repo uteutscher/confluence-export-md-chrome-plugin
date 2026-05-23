@@ -10,6 +10,28 @@ function hasAttribute(node: Node, attributeName: string): node is Element {
   return isElement(node) && node.hasAttribute(attributeName);
 }
 
+function isMacroNode(node: Node): node is Element {
+  if (!isElement(node)) {
+    return false;
+  }
+
+  const nodeType = node.getAttribute('data-node-type');
+  return hasAttribute(node, 'data-macro-name')
+    || hasAttribute(node, 'data-extension-key')
+    || nodeType === 'extension'
+    || nodeType === 'inlineExtension'
+    || nodeType === 'bodiedExtension';
+}
+
+function normalizeCdataSections(html: string): string {
+  return html.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (_match, content: string) => {
+    return content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  });
+}
+
 function normalizeRelativeLinks(html: string, pageUrl: string): string {
   return html.replace(/href="([^"]+)"/g, (_match, href: string) => {
     return `href="${new URL(href, pageUrl).toString()}"`;
@@ -129,7 +151,7 @@ function createTurndownService(warnings: MarkdownConversionResult['warnings']): 
   });
 
   service.addRule('unsupported-macro', {
-    filter: (node) => hasAttribute(node, 'data-macro-name'),
+    filter: (node) => isMacroNode(node),
     replacement: () => ''
   });
 
@@ -141,7 +163,7 @@ export function convertExtractedPageToMarkdown(
   options: ExportOptions = { tableFormat: 'markdown' }
 ): MarkdownConversionResult {
   const warnings: MarkdownConversionResult['warnings'] = [];
-  const normalizedHtml = normalizeRelativeLinks(page.contentHtml, page.url);
+  const normalizedHtml = normalizeRelativeLinks(normalizeCdataSections(page.contentHtml), page.url);
   const turndown = createTurndownService(warnings);
   const body = turndown.turndown(normalizeTablesForMarkdown(normalizedHtml)).trim();
 
