@@ -1,12 +1,12 @@
 import { createMarkdownFileName } from '../core/filename';
 import { getPageEligibility } from '../core/pageEligibility';
 
-async function getActiveTab() {
+async function getActiveTab(): Promise<{ id: number; url: string }> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id || !tab.url) {
     throw new Error('Could not determine the active tab.');
   }
-  return tab;
+  return { id: tab.id, url: tab.url };
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -48,7 +48,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 : 'Export complete.'
           }
         });
+        return;
       }
+
+      sendResponse({
+        ok: false,
+        state: {
+          kind: 'error',
+          message: 'Unknown message type.'
+        }
+      });
     } catch (error) {
       sendResponse({
         ok: false,
