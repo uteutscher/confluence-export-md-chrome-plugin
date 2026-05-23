@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Confluence Export to Markdown",
+  "version": "0.1.0",
+  "description": "Export the active Confluence Cloud page to Markdown.",
+  "permissions": ["activeTab", "downloads", "scripting", "tabs"],
+  "host_permissions": ["https://*.atlassian.net/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Export Markdown"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.atlassian.net/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
