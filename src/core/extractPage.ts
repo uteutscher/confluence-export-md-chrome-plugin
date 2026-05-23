@@ -17,7 +17,7 @@ export function extractPage(document: Document, pageUrl: string): ExtractedPage 
   const title = heading?.textContent?.trim() || document.title.trim();
   heading?.remove();
 
-  const assets: ExtractedAsset[] = Array.from(clonedRoot.querySelectorAll('a[href]'))
+  const assets = Array.from(clonedRoot.querySelectorAll('a[href]'))
     .map((link) => {
       const href = link.getAttribute('href');
       if (href === null) {
@@ -28,7 +28,7 @@ export function extractPage(document: Document, pageUrl: string): ExtractedPage 
       const label = link.textContent?.trim() || absoluteUrl;
 
       if (absoluteUrl.includes('/download/attachments/')) {
-        return { type: 'attachment' as const, label, url: absoluteUrl };
+        return { type: 'attachment' as const, label, url: absoluteUrl } satisfies ExtractedAsset;
       }
 
       return null;
