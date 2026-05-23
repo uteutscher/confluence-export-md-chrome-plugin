@@ -20,7 +20,7 @@ describe('convertExtractedPageToMarkdown', () => {
     });
   });
 
-  it('converts panels, task lists, and unsupported macros into readable markdown with warnings', () => {
+  it('converts panels, task lists, and ignores macros without warnings', () => {
     const result = convertExtractedPageToMarkdown({
       title: 'Runbook',
       url: 'https://workspace.atlassian.net/wiki/spaces/ENG/pages/12345/Runbook',
@@ -37,9 +37,8 @@ describe('convertExtractedPageToMarkdown', () => {
     expect(result.markdown).toContain('[Status: In Progress]');
     expect(result.markdown).toContain('- [x] Done');
     expect(result.markdown).toContain('- [ ] Next');
-    expect(result.markdown).toContain('[Unsupported macro: roadmap]');
-    expect(result.warnings).toEqual([
-      { code: 'unsupported-macro', message: 'Unsupported macro converted to placeholder: roadmap' }
-    ]);
+    expect(result.markdown).not.toContain('Roadmap macro');
+    expect(result.markdown).not.toContain('[Unsupported macro: roadmap]');
+    expect(result.warnings).toEqual([]);
   });
 });

@@ -45,14 +45,7 @@ function createTurndownService(warnings: MarkdownConversionResult['warnings']): 
 
   service.addRule('unsupported-macro', {
     filter: (node) => node instanceof HTMLElement && node.hasAttribute('data-macro-name'),
-    replacement: (_content, node) => {
-      const macroName = (node as HTMLElement).getAttribute('data-macro-name') || 'unknown';
-      warnings.push({
-        code: 'unsupported-macro',
-        message: `Unsupported macro converted to placeholder: ${macroName}`
-      });
-      return `\n[Unsupported macro: ${macroName}]\n`;
-    }
+    replacement: () => ''
   });
 
   return service;

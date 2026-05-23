@@ -88,5 +88,5 @@ Der Build liegt danach in `dist/`.
 ## Hinweise
 
 - Die Extension ist auf Confluence-Cloud-DOM-Strukturen ausgerichtet.
-- Nicht unterstuetzte Makros werden moeglichst als lesbare Platzhalter ausgegeben.
+- Confluence-Makros werden beim Export ignoriert.
 - Teilweise vereinfachte Inhalte werden als Warnungen behandelt, nicht als harter Fehler.
